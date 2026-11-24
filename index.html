@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Biga & Bozcaada Balık Takvimi</title>
+<meta name="theme-color" content="#0b1b2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Balık Takvimi">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+  :root{
+    --bg:#0b1b2b; --panel:#102a40; --panel2:#0c2234; --accent:#2fb8a6; --accent2:#f2b134;
+    --good:#3ecf6e; --ok:#9ad94b; --mid:#f2c94c; --bad:#eb5757; --text:#eaf2f6; --muted:#9fb6c4; --line:#1d3b52;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background:linear-gradient(180deg,#081621,#0b1b2b 40%,#0a1826); color:var(--text);
+    min-height:100vh; padding:env(safe-area-inset-top) env(safe-area-inset-right) calc(30px + env(safe-area-inset-bottom)) env(safe-area-inset-left);
+    -webkit-tap-highlight-color:transparent;
+  }
+  header{ padding:16px 16px 4px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  header h1{ margin:0; font-size:1.15rem; }
+  header .sub{ color:var(--muted); font-size:0.78rem; margin-top:2px; }
+  .iconbtn{ background:var(--panel); border:1px solid var(--line); color:var(--text); border-radius:12px; padding:9px 12px; font-size:0.85rem; cursor:pointer; white-space:nowrap; }
+  .wrap{ max-width:760px; margin:0 auto; padding:0 12px; }
+  .tabs{ display:flex; gap:8px; margin:12px 0; }
+  .tab{ flex:1; padding:11px 6px; border-radius:12px; text-align:center; background:var(--panel); border:1px solid var(--line); cursor:pointer; font-size:0.88rem; color:var(--muted); }
+  .tab.active{ background:var(--accent); color:#06201c; font-weight:700; border-color:transparent; }
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:12px; }
+  .card h2{ margin:0 0 10px; font-size:0.98rem; color:var(--accent2); }
+  .status{ font-size:0.78rem; color:var(--muted); margin:0 0 10px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .status .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:5px; background:var(--muted); vertical-align:middle;}
+  .status .dot.live{ background:var(--good); } .status .dot.cache{ background:var(--mid);} .status .dot.off{ background:var(--bad);}
+  .best-list{ display:flex; flex-direction:column; gap:8px; }
+  .best{ display:flex; align-items:center; gap:10px; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:10px 12px; cursor:pointer; }
+  .best .sc{ min-width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1.05rem; color:#06201c; }
+  .best .tx{ flex:1; font-size:0.86rem; line-height:1.35; }
+  .best .tx b{ font-size:0.92rem; }
+  .best .tx .m{ color:var(--muted); font-size:0.78rem; }
+  .seg{ display:flex; background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:3px; margin-bottom:10px; }
+  .seg button{ flex:1; background:none; border:none; color:var(--muted); padding:8px 4px; border-radius:9px; font-size:0.85rem; cursor:pointer; }
+  .seg button.on{ background:var(--accent); color:#06201c; font-weight:700; }
+  .days{ display:flex; flex-direction:column; gap:10px; }
+  .day .dh{ display:flex; justify-content:space-between; font-size:0.8rem; color:var(--muted); margin-bottom:4px; }
+  .day .dh b{ color:var(--text); font-size:0.86rem; }
+  .strip{ display:grid; grid-template-columns:repeat(24,1fr); gap:2px; }
+  .strip .c{ height:26px; border-radius:4px; cursor:pointer; position:relative; }
+  .strip .c.sel{ outline:2px solid #fff; outline-offset:1px; z-index:1; }
+  .strip .c.now::after{ content:""; position:absolute; left:50%; top:-5px; width:4px; height:4px; background:#fff; border-radius:50%; transform:translateX(-50%); }
+  .hours{ display:grid; grid-template-columns:repeat(24,1fr); font-size:0.58rem; color:var(--muted); margin-top:2px; }
+  .hours span{ text-align:center; }
+  .legend{ display:flex; gap:10px; flex-wrap:wrap; font-size:0.72rem; color:var(--muted); margin-top:8px; }
+  .legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; }
+  .detail-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .detail-head .t{ font-size:1.15rem; font-weight:800; }
+  .detail-head .d{ color:var(--muted); font-size:0.8rem; }
+  .scores{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:10px 0; }
+  .scorebox{ text-align:center; padding:10px 6px; border-radius:12px; background:var(--panel2); border:1px solid var(--line); }
+  .scorebox .lab{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; }
+  .scorebox .big{ font-size:1.9rem; font-weight:800; margin:2px 0; }
+  .scorebox .verdict{ font-size:0.88rem; font-weight:700; }
+  .cond{ display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+  .cond div{ background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:7px 8px; font-size:0.72rem; color:var(--muted); }
+  .cond div b{ display:block; color:var(--text); font-size:0.9rem; margin-top:2px; }
+  .arrow{ display:inline-block; transition:transform .2s; }
+  .warn{ background:#3a1616; border:1px solid #7a2a2a; color:#ffc9c9; border-radius:10px; padding:9px 11px; font-size:0.82rem; margin:10px 0 0; }
+  .info{ background:#2a1f0f; border:1px solid #5a4319; color:#f0d9a8; border-radius:10px; padding:9px 11px; font-size:0.8rem; margin-bottom:12px; }
+  .spot{ background:var(--panel2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-top:10px; }
+  .spot .top{ display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  .spot .name{ font-weight:700; font-size:0.95rem; }
+  .spot .why{ color:var(--muted); font-size:0.8rem; margin-top:3px; line-height:1.4; }
+  .pill{ font-size:0.7rem; padding:3px 8px; border-radius:20px; font-weight:700; white-space:nowrap; }
+  .sp{ border-top:1px dashed var(--line); margin-top:10px; padding-top:10px; }
+  .sp .sn{ font-weight:700; color:var(--accent2); font-size:0.92rem; }
+  .sp .sn small{ color:var(--muted); font-weight:500; }
+  .kv{ display:grid; grid-template-columns:78px 1fr; gap:4px 8px; font-size:0.8rem; margin-top:6px; line-height:1.4; }
+  .kv .k{ color:var(--muted); }
+  .maplink{ font-size:0.78rem; color:var(--accent2); text-decoration:none; white-space:nowrap; }
+  table.t{ width:100%; border-collapse:collapse; font-size:0.78rem; }
+  table.t th, table.t td{ border-bottom:1px solid var(--line); padding:6px 4px; text-align:left; vertical-align:top; }
+  table.t th{ color:var(--accent2); font-weight:600; }
+  .muted{ color:var(--muted); } .small{ font-size:0.76rem; }
+  details summary{ cursor:pointer; color:var(--accent2); font-size:0.9rem; font-weight:600; }
+  .manual label{ font-size:0.8rem; color:var(--muted); display:block; margin:10px 0 4px; }
+  .manual input[type=range]{ width:100%; accent-color:var(--accent); }
+  .manual select{ width:100%; background:var(--panel2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:8px; }
+  .val{ color:var(--accent2); font-weight:700; }
+  footer{ text-align:center; color:var(--muted); font-size:0.72rem; margin:18px 10px 0; line-height:1.6; }
+  a{ color:var(--accent2); }
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🎣 Balık Takvimi</h1>
+    <div class="sub">Biga · Karabiga · Bozcaada — kıyı & tekne</div>
+  </div>
+  <button class="iconbtn" id="refreshBtn">↻ Yenile</button>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <div class="tab active" data-loc="karabiga">⚓ Karabiga / Biga</div>
+    <div class="tab" data-loc="bozcaada">🏝️ Bozcaada</div>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="info hidden" id="offlineInfo"></div>
+
+  <div class="card manual hidden" id="manualCard">
+    <h2>✍️ Elle koşul gir</h2>
+    <div class="small muted">Canlı veri alınamadığında kullan: Windy veya MGM'den bakıp değerleri gir.</div>
+    <div id="manualLinks" class="small" style="margin-top:6px"></div>
+    <label>Rüzgâr: <span class="val" id="mWindV">12 km/sa</span></label>
+    <input type="range" id="mWind" min="0" max="60" value="12">
+    <label>Rüzgâr yönü (nereden esiyor)</label>
+    <select id="mDir">
+      <option value="0">Yıldız (K)</option><option value="45" selected>Poyraz (KD)</option><option value="90">Gündoğusu (D)</option>
+      <option value="135">Keşişleme (GD)</option><option value="180">Kıble (G)</option><option value="225">Lodos (GB)</option>
+      <option value="270">Batı / Günbatısı (B)</option><option value="315">Karayel (KB)</option>
+    </select>
+    <label>Dalga: <span class="val" id="mWaveV">40 cm</span></label>
+    <input type="range" id="mWave" min="0" max="250" value="40">
+    <label>Basınç eğilimi</label>
+    <select id="mPres">
+      <option value="-4">Hızla düşüyor</option><option value="-2" selected>Hafif düşüyor</option><option value="0">Sabit</option>
+      <option value="2">Hafif yükseliyor</option><option value="4">Hızla yükseliyor</option>
+    </select>
+    <label>Hava</label>
+    <select id="mSky">
+      <option value="0">Açık</option><option value="2" selected>Parçalı bulutlu</option><option value="3">Kapalı</option>
+      <option value="61">Hafif yağmur</option><option value="65">Kuvvetli yağmur</option><option value="95">Gök gürültülü fırtına</option>
+    </select>
+    <label>Deniz suyu sıcaklığı: <span class="val" id="mSstV">16 °C</span></label>
+    <input type="range" id="mSst" min="6" max="28" value="16">
+  </div>
+
+  <div class="card" id="bestCard">
+    <h2>⭐ Önümüzdeki 7 günün en iyi zamanları</h2>
+    <div class="seg" id="bestSeg">
+      <button data-mode="shore" class="on">Kıyıdan</button>
+      <button data-mode="boat">Tekneden</button>
+    </div>
+    <div class="best-list" id="bestList"></div>
+  </div>
+
+  <div class="card" id="detailCard">
+    <div class="detail-head">
+      <div><div class="t" id="dTime">—</div><div class="d" id="dDate">—</div></div>
+      <div class="d" id="dMoon" style="text-align:right">—</div>
+    </div>
+    <div class="scores">
+      <div class="scorebox"><div class="lab">Kıyıdan</div><div class="big" id="sShore">—</div><div class="verdict" id="vShore">—</div></div>
+      <div class="scorebox"><div class="lab">Tekneden</div><div class="big" id="sBoat">—</div><div class="verdict" id="vBoat">—</div></div>
+    </div>
+    <div class="cond" id="condGrid"></div>
+    <div id="warnBox"></div>
+    <div class="seg" style="margin-top:12px" id="detailSeg">
+      <button data-mode="shore" class="on">Kıyıdan nereye?</button>
+      <button data-mode="boat">Tekneyle nereye?</button>
+    </div>
+    <div id="spotList"></div>
+  </div>
+
+  <div class="card">
+    <h2>📊 Saatlik plan (dokun → detay)</h2>
+    <div class="seg" id="stripSeg">
+      <button data-mode="shore" class="on">Kıyı puanı</button>
+      <button data-mode="boat">Tekne puanı</button>
+    </div>
+    <div class="days" id="days"></div>
+    <div class="legend">
+      <span><i style="background:var(--good)"></i>Mükemmel</span>
+      <span><i style="background:var(--ok)"></i>İyi</span>
+      <span><i style="background:var(--mid)"></i>Orta</span>
+      <span><i style="background:#c77b3a"></i>Zayıf</span>
+      <span><i style="background:var(--bad)"></i>Gitme</span>
+    </div>
+  </div>
+
+
+  <div class="card">
+    <details>
+      <summary>🐟 Tür rehberi: yem, takım, yöntem</summary>
+      <div id="speciesGuide" style="margin-top:10px"></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>📏 Yasal boylar ve günlük limit</summary>
+      <div id="legalTable" style="margin-top:10px"></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>📲 Telefona uygulama gibi ekle</summary>
+      <div class="small" style="margin-top:8px; line-height:1.6">
+        <b>iPhone (Safari):</b> Alttaki Paylaş düğmesi → <b>Ana Ekrana Ekle</b>.<br>
+        <b>Android (Chrome):</b> Sağ üst ⋮ menü → <b>Ana ekrana ekle</b> / <b>Uygulamayı yükle</b>.<br>
+        Son çekilen tahmin telefonda saklanır; internet yokken de son veriyi görürsün.
+      </div>
+    </details>
+  </div>
+</div>
+
+<footer>
+  Hava ve deniz verisi: Open-Meteo (ücretsiz, anahtarsız). Puanlar hobi amaçlı tahmindir; resmi uyarıların yerini tutmaz.<br>
+  Tekneyle çıkmadan önce MGM deniz uyarılarına bak, can yeleği giy, dönüş saatini birine haber ver.
+</footer>
+
+<script>
+// CORE-START
+"use strict";
+const TZ = "Europe/Istanbul";
+
+const LOCS = {
+  karabiga: {
+    name: "Karabiga / Biga",
+    sea: "marmara",
+    wx: { lat: 40.40, lon: 27.30 },
+    marine: { lat: 40.46, lon: 27.30 },
+    windy: "https://www.windy.com/40.404/27.304?40.30,27.30,10",
+    spots: [
+      { id:"k_liman", name:"Karabiga Limanı mendireği", type:"shore", faces:90,
+        species:["istavrit","lufer","levrek","kalamar","karagoz","kefal"],
+        note:"Mendirek ucu akıntı alır; akşam ışıkları istavriti ve kalamarı toplar." },
+      { id:"k_cay", name:"Biga Çayı ağzı (Karabiga)", type:"shore", faces:60,
+        species:["levrek","kefal","lufer"],
+        note:"Tatlı–tuzlu su karışımı. Yağmur sonrası bulanık suda levrek çok aktif olur." },
+      { id:"k_kocakum", name:"Kocakum ve batısındaki kumsallar", type:"shore", faces:0,
+        species:["cipura","levrek","karagoz"],
+        note:"Uzun kumsal: sakin günde surf casting ile çipura, dalgalı günde kırılma hattında levrek." },
+      { id:"k_kemer", name:"Kemer balıkçı barınağı", type:"shore", faces:0,
+        species:["istavrit","karagoz","kalamar","lufer"],
+        note:"Barınak mendireği; poyrazda dış taraf dalgalı, iç taraf korunaklı." },
+      { id:"k_aksaz", name:"Aksaz köyü limanı", type:"shore", faces:0,
+        species:["istavrit","lufer","karagoz"],
+        note:"Sonbaharda lüfer sürüleri bu kıyıya sık yaklaşır." },
+      { id:"k_b_koy", name:"Karabiga Koyu çıkışı ve burun açıkları (10–30 m)", type:"boat", faces:45,
+        species:["lufer","palamut","istavrit","karagoz"],
+        note:"Akıntılı burun hattı: sürütme ve çapari. Poyrazda koy çıkışı çabuk kabarır." },
+      { id:"k_b_kum", name:"Batı kıyısı açığı, kum–çamur zemin (20–50 m)", type:"boat", faces:0,
+        species:["mezgit","kalamar","karagoz"],
+        note:"Kışın dip takımıyla mezgit, akşamüstü kalamar." }
+    ]
+  },
+  bozcaada: {
+    name: "Bozcaada",
+    sea: "ege",
+    wx: { lat: 39.83, lon: 26.05 },
+    marine: { lat: 39.80, lon: 25.95 },
+    windy: "https://www.windy.com/39.83/26.05?39.73,26.05,10",
+    spots: [
+      { id:"b_liman", name:"Bozcaada yat limanı ve mendirek", type:"shore", faces:60,
+        species:["istavrit","kalamar","karagoz","levrek","kefal"],
+        note:"Anakaraya bakan liman; akşam ve gece ışıklı kısımlar verimli." },
+      { id:"b_polente", name:"Polente Feneri kayalıkları (batı ucu)", type:"shore", faces:270,
+        species:["levrek","sarigoz","karagoz","iskorpit"],
+        note:"Açık denize bakan akıntılı kayalık. Kayalar kaygan, dalgalı günde dikkat." },
+      { id:"b_ayazma", name:"Ayazma – Sulubahçe arası güney kıyısı", type:"shore", faces:180,
+        species:["cipura","karagoz","levrek"],
+        note:"Kum–kaya geçişleri. Kuzeyli rüzgârda (meltem/poyraz) adanın gölgesinde kalır." },
+      { id:"b_tuzburnu", name:"Tuzburnu", type:"shore", faces:200,
+        species:["levrek","cipura","karagoz"],
+        note:"Lodosa çok açık: hafif lodosta levrek, sert lodosta gitme." },
+      { id:"b_igdelik", name:"İğdelik – Poyraz Limanı (doğu kıyısı)", type:"shore", faces:90,
+        species:["istavrit","karagoz","kalamar","cipura"],
+        note:"Doğuya bakan sığ kıyı; batılı rüzgârlarda korunaklı." },
+      { id:"b_killik", name:"Killik Burnu (kuzey)", type:"shore", faces:0,
+        species:["levrek","sarigoz","karagoz"],
+        note:"Kuzeye açık burun: hafif kuzeyli rüzgârda levrek, sert meltemde gitme." },
+      { id:"b_b_burun", name:"Güney burunları açığı (Tuzburnu–Mermer–Habbeli, 15–50 m)", type:"boat", faces:190,
+        species:["mercan","sinarit","karagoz","iskorpit"],
+        note:"Kayalık–kum geçişleri; iskandille 20–50 m arayın. Kuzeyli rüzgârda korunaklı." },
+      { id:"b_b_kanal", name:"Ada – anakara kanalı (doğu)", type:"boat", faces:80,
+        species:["lufer","palamut","istavrit"],
+        note:"Göç balıkları kanaldan geçer; akıntıya karşı sürütme yapın." },
+      { id:"b_b_tavsan", name:"Tavşan Adaları çevresi", type:"boat", faces:20,
+        species:["sinarit","mercan","lufer","iskorpit"],
+        note:"Açık ve akıntılı; yalnızca sakin günlerde, deneyimliysen." }
+    ]
+  }
+};
+
+const SPECIES = {
+  levrek: { ad:"Levrek", boy:"25 cm", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[10,11,12,1,2,3,4], ege:[10,11,12,1,2,3,4] },
+    method:{ shore:"Spin (yapay yem) — atıp sarma; alternatif: kısa dip takımı", boat:"Kıyıya yakın sürütme veya tekneden spin" },
+    bait:["Dalıcı rapala 9–12 cm (gümüş / sardalya deseni)","Silikon shad 7–10 cm + 7–14 g jighead","Su üstü yem (popper / stickbait) — şafakta","Doğal: canlı karides, boru kurdu, sardalya fileto"],
+    tackle:"2,7–3 m spin kamış (10–40 g), 3000–4000 makara, 0,12–0,16 mm PE ana ip + 1–1,5 m 0,28–0,35 mm florokarbon köstek",
+    tip:"Köpüklü, hafif bulanık su ve nehir ağızları levreğin av sahasıdır. Dalga kırılma hattına paralel at." },
+  cipura: { ad:"Çipura", boy:"20 cm", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[4,5,6,7,8,9,10,11], ege:[3,4,5,6,7,8,9,10,11,12] },
+    method:{ shore:"Dip takımı (surf casting)", boat:"Demirli dip avı" },
+    bait:["Yengeç (en seçici, en iyi yem)","Midye","Boru kurdu / kum kurdu","Karides"],
+    tackle:"3,9–4,2 m surf kamış (100–200 g), 5000–6000 makara, 0,30–0,35 mm ana misina, 0,22–0,26 mm florokarbon köstek, 1–2/0 kısa saplı güçlü iğne, 60–120 g kurşun",
+    tip:"Kum ile kayanın ve midye kümelerinin birleştiği yerler. Su ılıkken (16 °C üstü) ve sakin–orta dalgada iştahlıdır." },
+  lufer: { ad:"Lüfer / Çinekop", boy:"18 cm", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[9,10,11,12], ege:[9,10,11,12,1] },
+    method:{ shore:"Spin (kaşık / rapala) veya yemli çinekop takımı", boat:"Lüfer zokası, yemli çapari veya sürütme" },
+    bait:["Kaşık 20–40 g","Rapala 9–12 cm","İstavrit veya sardalya fileto (yemli takım)","Lüfer zokası (tekneden)"],
+    tackle:"2,7–3,3 m kamış (20–60 g), 4000 makara, 0,16–0,20 mm PE + 0,45–0,55 mm florokarbon köstek (keskin dişlere karşı)",
+    tip:"Sonbahar göçünde akşamüstü ve akıntılı burunlarda sürü halinde yem kovalar. Yüzeyde kaynayan su = lüfer." },
+  palamut: { ad:"Palamut", boy:"25 cm", limit:"Günlük toplam 5 kg içinde. 1 Nisan–14 Ağustos arası kısıtlı (çapari hariç)",
+    months:{ marmara:[9,10,11], ege:[9,10,11] },
+    method:{ shore:"Sürü kıyıya yaklaştığında kaşık / rapala ile uzak atış", boat:"Sürütme (rapala / tüylü yem) ve çapari" },
+    bait:["Tüylü çapari","Sürütme rapalası 10–14 cm","Kaşık 30–40 g"],
+    tackle:"Tekne: 2,1–2,4 m sürütme kamışı, 0,35–0,40 mm misina. Kıyı: 3 m kamış, 30–60 g atış",
+    tip:"Sabah erken saatlerde, kuş sürülerinin daldığı yerlerin çevresinde." },
+  istavrit: { ad:"İstavrit", boy:"12 cm", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[1,2,3,4,5,6,7,8,9,10,11,12], ege:[1,2,3,4,5,6,7,8,9,10,11,12] },
+    method:{ shore:"Çapari", boat:"Çapari" },
+    bait:["Tüylü / yansımalı çapari (6–9 iğne)","İğnelere küçük karides veya tavuk parçası"],
+    tackle:"2,4–3 m hafif kamış, 2500 makara, 0,20–0,25 mm misina, 15–30 g kurşun",
+    tip:"Liman ışıkları ve mendirek uçları, akşamüstü ve gece. Tuttuğun istavrit lüfer ve levrek için canlı yemdir." },
+  karagoz: { ad:"Karagöz / Sargoz", boy:"18 cm (karagöz)", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[4,5,6,7,8,9,10,11], ege:[1,2,3,4,5,6,7,8,9,10,11,12] },
+    method:{ shore:"Kayalıkta kısa dip veya şamandıra", boat:"Kayalık üstünde dip" },
+    bait:["Karides","Midye","Boru kurdu","Ekmek–sardalya hamuru ile yemleme"],
+    tackle:"3–3,6 m kamış, 3000–4000 makara, 0,25 mm misina, 0,18–0,20 mm florokarbon köstek, 4–1 numara iğne",
+    tip:"Hafif dalgalı akşam ve gece saatlerinde kayalık diplerde." },
+  sarigoz: { ad:"Sarıgöz", boy:"Tebliği kontrol et", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[], ege:[10,11,12,1,2,3,4] },
+    method:{ shore:"Gece şamandıra veya kısa dip", boat:"Kayalık üstü dip, gece" },
+    bait:["Karides","Boru kurdu","Ekmek + sardalya hamuru ile yemleme"],
+    tackle:"3–3,6 m kamış, 3000–4000 makara, 0,25 mm misina, 0,20 mm florokarbon köstek, 2–1 numara iğne",
+    tip:"Gece kayalık diplerde; yemleme yapmadan zor gelir." },
+  kefal: { ad:"Kefal", boy:"30 cm (has kefal)", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[1,2,3,4,5,6,7,8,9,10,11,12], ege:[1,2,3,4,5,6,7,8,9,10,11,12] },
+    method:{ shore:"Şamandıralı ince takım", boat:"—" },
+    bait:["Ekmek–peynir hamuru","Ekmek içi","Sardalya ezmesi ile yemleme"],
+    tackle:"3,6–4,2 m bolonez / match kamış, 2500 makara, 0,18–0,20 mm misina, 8–12 numara iğne, hassas şamandıra",
+    tip:"Liman içi ve nehir ağızlarında, sakin suda." },
+  kalamar: { ad:"Kalamar", boy:"Tebliği kontrol et", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[11,12,1,2,3], ege:[11,12,1,2,3] },
+    method:{ shore:"Eging (kalamar zokası)", boat:"Eging veya yavaş sürütme" },
+    bait:["Kalamar zokası (EGI) 2,5–3,0","Gündüz doğal renk, gece turuncu / fosforlu"],
+    tackle:"2,4–2,6 m eging kamış, 2500–3000 makara, 0,08–0,12 mm PE + 0,20–0,25 mm florokarbon köstek",
+    tip:"Sakin, berrak suda; akşam karanlığı ve liman ışıklarının çevresi." },
+  mercan: { ad:"Mercan", boy:"Tebliği kontrol et", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[], ege:[3,4,5,6,7,8,9,10,11] },
+    method:{ shore:"—", boat:"Derin dip avı (20–60 m)" },
+    bait:["Kalamar şeridi","Karides","Sardalya parçası"],
+    tackle:"1,8–2,4 m tekne kamışı (100–200 g), 4000–5000 makara, 0,30–0,35 mm misina, 2–3 iğneli dip takımı, 100–200 g kurşun",
+    tip:"Kum–kaya geçişlerinde; iskandille 20–60 m arası tara." },
+  sinarit: { ad:"Sinarit", boy:"35 cm", limit:"Günde en fazla 2 adet",
+    months:{ marmara:[], ege:[4,5,6,7,8,9,10,11] },
+    method:{ shore:"—", boat:"Canlı yemle dip veya yavaş sürütme" },
+    bait:["Canlı kalamar","Canlı istavrit","Büyük silikon / jig"],
+    tackle:"2,1 m güçlü tekne kamışı, 6000+ makara, 0,40–0,50 mm misina, 3/0–5/0 iğne",
+    tip:"Derin kayalık ve akıntılı burun açıklarında; canlı yem farkı büyüktür." },
+  iskorpit: { ad:"İskorpit", boy:"Tebliği kontrol et", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[1,2,3,4,5,6,7,8,9,10,11,12], ege:[1,2,3,4,5,6,7,8,9,10,11,12] },
+    method:{ shore:"Kayalıkta dip", boat:"Kayalık dip" },
+    bait:["Sardalya","Karides","Kalamar parçası"],
+    tackle:"Orta güçte dip takımı, 1/0 iğne",
+    tip:"Dikenleri zehirlidir: elle tutma, pense ile çıkar." },
+  mezgit: { ad:"Mezgit", boy:"Tebliği kontrol et", limit:"Günlük toplam 5 kg içinde",
+    months:{ marmara:[11,12,1,2,3], ege:[] },
+    method:{ shore:"—", boat:"Kum–çamur zeminde dip (20–50 m)" },
+    bait:["Hamsi / istavrit parçası","Karides"],
+    tackle:"Tekne dip takımı, 2–3 iğne, 80–150 g kurşun",
+    tip:"Kışın soğuk ve sakin günlerde dipte sürü halinde." }
+};
+
+const LEGAL = [
+  ["Levrek","25 cm","5 kg toplam"],["Çipura","20 cm","5 kg toplam"],["Lüfer","18 cm","5 kg toplam"],
+  ["Palamut / Torik","25 cm","5 kg; 1 Nis–14 Ağu kısıtlı (çapari hariç)"],["Karagöz","18 cm","5 kg toplam"],
+  ["Has kefal","30 cm","5 kg toplam"],["İstavrit","12 cm","5 kg toplam"],["Barbun / Tekir","11 cm","5 kg toplam"],
+  ["Sinarit","35 cm","2 adet"],["Eşkina","25 cm","3 adet"],["Akya","40 cm","1 adet; 15 Nis–15 May yasak"],
+  ["Ahtapot","750 g","1 adet; 15 Nis–31 Eki yasak"],["Orfoz","—","Tamamen yasak"]
+];
+
+// ---------- helpers ----------
+function lerp(points, x){
+  if (x <= points[0][0]) return points[0][1];
+  for (let i = 1; i < points.length; i++){
+    if (x <= points[i][0]){
+      const [x0,y0] = points[i-1], [x1,y1] = points[i];
+      return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+    }
+  }
+  return points[points.length-1][1];
+}
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function angDiff(a, b){ let d = Math.abs(((a - b) % 360 + 360) % 360); return d > 180 ? 360 - d : d; }
+const DIR_NAMES = ["K","KKD","KD","DKD","D","DGD","GD","GGD","G","GGB","GB","BGB","B","BKB","KB","KKB"];
+const WIND_NAMES = ["Yıldız","Poyraz","Gündoğusu","Keşişleme","Kıble","Lodos","Günbatısı","Karayel"];
+function dirName(deg){ return DIR_NAMES[Math.round(((deg % 360) + 360) % 360 / 22.5) % 16]; }
+function windName(deg){ return WIND_NAMES[Math.round(((deg % 360) + 360) % 360 / 45) % 8]; }
+
+// Local (Istanbul, fixed UTC+3) time string "YYYY-MM-DDTHH:MM" -> epoch ms
+function parseLocal(s){ return Date.parse(s + ":00+03:00"); }
+function fmtTime(ms){ return new Date(ms).toLocaleTimeString("tr-TR",{hour:"2-digit",minute:"2-digit",timeZone:TZ}); }
+function fmtDay(ms){ return new Date(ms).toLocaleDateString("tr-TR",{weekday:"short",day:"numeric",month:"short",timeZone:TZ}); }
+function localHour(ms){ return +new Date(ms).toLocaleString("en-GB",{hour:"2-digit",hour12:false,timeZone:TZ}) % 24; }
+function localMonth(ms){ return +new Date(ms).toLocaleString("en-GB",{month:"numeric",timeZone:TZ}); }
+
+// ---------- astronomy (fallback when API has no sunrise/sunset) ----------
+function sunTimesUTCmin(dateMs, lat, lon){
+  const d = new Date(dateMs);
+  const start = Date.UTC(d.getUTCFullYear(),0,1);
+  const n = Math.floor((dateMs - start)/86400000) + 1;
+  const g = 2*Math.PI/365*(n-1);
+  const eqt = 229.18*(0.000075+0.001868*Math.cos(g)-0.032077*Math.sin(g)-0.014615*Math.cos(2*g)-0.040849*Math.sin(2*g));
+  const decl = 0.006918-0.399912*Math.cos(g)+0.070257*Math.sin(g)-0.006758*Math.cos(2*g)+0.000907*Math.sin(2*g)-0.002697*Math.cos(3*g)+0.00148*Math.sin(3*g);
+  const la = lat*Math.PI/180;
+  const cosHa = clamp(Math.cos(90.833*Math.PI/180)/(Math.cos(la)*Math.cos(decl)) - Math.tan(la)*Math.tan(decl), -1, 1);
+  const ha = Math.acos(cosHa)*180/Math.PI;
+  const noon = 720 - 4*lon - eqt;
+  return { sunrise: noon - 4*ha, sunset: noon + 4*ha, noon };
+}
+function moonInfo(ms){
+  const syn = 29.530588853, ref = Date.UTC(2000,0,6,18,14,0);
+  let age = ((ms - ref)/86400000) % syn; if (age < 0) age += syn;
+  const frac = age/syn, illum = (1 - Math.cos(2*Math.PI*frac))/2*100;
+  const names = [["Yeni Ay","🌑"],["Büyüyen hilal","🌒"],["İlk dördün","🌓"],["Büyüyen şişkin ay","🌔"],["Dolunay","🌕"],["Küçülen şişkin ay","🌖"],["Son dördün","🌗"],["Küçülen hilal","🌘"]];
+  const idx = Math.floor(((age + syn/16) % syn) / (syn/8)) % 8;
+  return { age, frac, illum, name:names[idx][0], emoji:names[idx][1] };
+}
+
+// ---------- scoring ----------
+const W_SHORE = [[0,60],[5,80],[10,100],[18,95],[25,70],[35,30],[45,8],[60,0]];
+const W_BOAT  = [[0,95],[8,100],[12,90],[18,62],[25,28],[30,10],[36,0]];
+const V_SHORE = [[0,70],[15,74],[40,95],[90,85],[140,35],[200,5],[300,0]];
+const V_BOAT  = [[0,100],[30,100],[50,86],[80,55],[100,30],[130,8],[160,0]];
+const P_TREND = [[-6,55],[-3,68],[-1.5,95],[0,88],[1.5,72],[3,52],[6,32]];
+function skyScore(code, isDay){
+  if (code >= 95) return 0;
+  if (code === 65 || code === 82 || code === 67 || code === 75) return 35;
+  if (code >= 51 && code <= 81) return 80;
+  if (code === 45 || code === 48) return 82;
+  if (code === 3) return 88;
+  if (code === 1 || code === 2) return 90;
+  return isDay ? 68 : 85;
+}
+function timeFactor(t, sun, moonT, mode){
+  const H = 3600000;
+  const near = (x, w) => Math.abs(t - x) <= w;
+  let f = 50, tag = null;
+  const isNight = t < sun.rise - H || t > sun.set + H;
+  if (isNight) { f = mode === "shore" ? 62 : 40; }
+  const h = localHour(t);
+  if (!isNight && h >= 11 && h <= 15) f = 38;
+  if (near(moonT.rise, 0.5*H) || near(moonT.set, 0.5*H)) { f = Math.max(f, 72); tag = "minor"; }
+  if (near(moonT.transit, H) || near(moonT.under, H)) { f = Math.max(f, 85); tag = "major"; }
+  if (near(sun.rise, H)) { f = 100; tag = "dawn"; }
+  if (near(sun.set, H)) { f = 100; tag = "dusk"; }
+  return { f, tag, isNight };
+}
+function moonTimes(sun, moon){
+  const off = moon.frac * 24 * 3600000;
+  const day = 86400000;
+  const wrap = (x) => { while (x > sun.set + day/2) x -= day; while (x < sun.rise - day/2) x += day; return x; };
+  const transit = wrap(sun.noon + off);
+  return { rise: wrap(sun.rise + off), set: wrap(sun.set + off), transit, under: wrap(transit + day/2) };
+}
+
+function scoreHour(h){
+  // h: {wind, gust, dir, wave, code, dp (3h pressure change), isDay, tf_shore, tf_boat}
+  const wS = lerp(W_SHORE, h.wind), wB = lerp(W_BOAT, h.wind);
+  const wave = h.wave == null ? h.wind * 2.2 : h.wave; // rough estimate if marine missing
+  const vS = lerp(V_SHORE, wave), vB = lerp(V_BOAT, wave);
+  const p = lerp(P_TREND, h.dp == null ? 0 : h.dp);
+  const s = skyScore(h.code, h.isDay);
+  let shoreW = wS*0.35 + vS*0.30 + p*0.15 + s*0.20;
+  let boatW  = wB*0.35 + vB*0.35 + p*0.10 + s*0.20;
+  let shore = shoreW*0.65 + h.tf_shore*0.35;
+  let boat  = boatW*0.65 + h.tf_boat*0.35;
+  const warn = [];
+  if (h.wind > 15 || (h.gust||0) > 25 || wave > 50) boat = Math.min(boat, 72); // orta deniz: en fazla "İyi"
+  if (h.wind > 28 || wave > 120) shore = Math.min(shore, 55);                 // sert deniz: kıyıda en fazla "Orta"
+  if (h.code >= 95){ shore = Math.min(shore, 8); boat = 0; warn.push("Gök gürültülü fırtına: yıldırım riski — kamışla açıkta durma, denize çıkma."); }
+  if (h.wind > 30 || (h.gust||0) > 40 || wave > 130){ boat = Math.min(boat, 8); warn.push("Rüzgâr/dalga küçük tekne için tehlikeli seviyede."); }
+  else if (h.wind > 22 || (h.gust||0) > 32 || wave > 90){ boat = Math.min(boat, 35); warn.push("Tekne için sert: yalnızca korunaklı kıyı dibinde, deneyimliysen."); }
+  if (h.wind > 40 || wave > 200){ shore = Math.min(shore, 10); warn.push("Kıyıda da dalga kayalıklara vurabilir; mendirek ve kayalardan uzak dur."); }
+  return { shore: Math.round(clamp(shore,0,100)), boat: Math.round(clamp(boat,0,100)), warn, waveUsed: wave };
+}
+
+function verdict(s){
+  if (s >= 80) return ["Mükemmel","#3ecf6e"];
+  if (s >= 65) return ["İyi","#9ad94b"];
+  if (s >= 45) return ["Orta","#f2c94c"];
+  if (s >= 25) return ["Zayıf","#c77b3a"];
+  return ["Gitme","#eb5757"];
+}
+
+function exposure(windFrom, faces){
+  const d = angDiff(windFrom, faces);
+  return d <= 60 ? "on" : d >= 120 ? "off" : "cross";
+}
+
+function spotScore(spot, hour, base){
+  const ex = exposure(hour.dir, spot.faces);
+  const w = hour.wind, v = hour.waveUsed;
+  let s = spot.type === "shore" ? base.shore : base.boat;
+  const why = [];
+  if (spot.type === "shore"){
+    if (ex === "on"){
+      if (w >= 8 && w <= 25 && v >= 25 && v <= 110){ s += 10; why.push("Rüzgâr kıyıya vuruyor: köpüklü su, yem kıyıya sürükleniyor — levrek için iyi"); }
+      if (w > 28 || v > 130){ s -= 35; why.push("Rüzgâr tam karşıdan ve sert: atış zor, kayalarda tehlike"); }
+      else if (w > 20) { s -= 8; why.push("Karşıdan rüzgâr atışı kısaltır"); }
+    } else if (ex === "off"){
+      if (w > 12){ s += 6; why.push("Rüzgâr arkadan: kıyı dibi sakin, atış uzar"); }
+      else why.push("Kıyı dibi sakin ve berrak");
+    } else {
+      if (w > 22){ s -= 6; why.push("Yandan sert rüzgâr misinayı sürükler"); }
+      else why.push("Yandan hafif rüzgâr");
+    }
+  } else {
+    if (ex === "on"){
+      if (w > 22){ s -= 45; why.push("Bu açık rüzgâra tam açık — gitme"); }
+      else if (w > 14){ s -= 22; why.push("Rüzgâra açık taraf, dalga hızla büyür"); }
+      else why.push("Hafif rüzgâr, açık taraf da avlanabilir");
+    } else if (ex === "off"){
+      if (w > 10){ s += 14; why.push("Kara rüzgâr kesiyor: korunaklı taraf"); }
+      if (w > 20) why.push("Dikkat: kara rüzgârı tekneyi açığa iter, kıyıdan fazla uzaklaşma");
+    } else {
+      if (w > 18){ s -= 10; why.push("Yandan esen rüzgâr tekneyi sürükler, demir tutmayabilir"); }
+    }
+  }
+  // Korunaklı taraf denizi yumuşatır ama genel deniz durumunu aşan bir "Mükemmel" vermesin
+  if (spot.type === "boat") s = Math.min(s, base.boat + 8, (w > 15 || v > 50) ? 78 : 100);
+  return { score: Math.round(clamp(s,0,100)), exposure: ex, why };
+}
+
+function speciesScore(key, ctx){
+  const sp = SPECIES[key];
+  const inSeason = (sp.months[ctx.sea] || []).includes(ctx.month);
+  if (!inSeason) return null;
+  let s = 50;
+  const tf = ctx.tag, night = ctx.isNight, v = ctx.wave, sst = ctx.sst;
+  const lowLight = tf === "dawn" || tf === "dusk" || night;
+  switch (key){
+    case "levrek": if (v >= 30 && v <= 110) s += 15; if (lowLight) s += 12; if (ctx.exposure === "on" && ctx.wind >= 8 && ctx.wind <= 25) s += 10; if (v < 10 && !night) s -= 12; break;
+    case "cipura": if (v < 60) s += 15; if (sst != null){ if (sst >= 16) s += 10; if (sst < 13) s -= 18; } if (!night) s += 5; break;
+    case "lufer": if (tf === "dusk" || tf === "dawn") s += 18; if (v >= 20 && v <= 100) s += 8; break;
+    case "palamut": if (tf === "dawn") s += 18; if (v < 80) s += 5; break;
+    case "istavrit": if (tf === "dusk" || night) s += 18; if (v < 50) s += 5; break;
+    case "karagoz": case "sarigoz": if (night || tf === "dusk") s += 15; if (v >= 20 && v <= 80) s += 8; break;
+    case "kefal": if (!night && v < 40) s += 12; break;
+    case "kalamar": if (night || tf === "dusk") s += 20; if (v < 40) s += 12; if (v > 70) s -= 18; break;
+    case "mercan": case "sinarit": case "mezgit": case "iskorpit": if (v < 60) s += 14; if (!night) s += 5; break;
+  }
+  return clamp(s, 0, 100);
+}
+// CORE-END
+
+// ================= UI / data =================
+let state = { loc:"karabiga", data:{}, sel:null, bestMode:"shore", stripMode:"shore", detailMode:"shore", source:{}, manual:false };
+
+function lsGet(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
+function lsSet(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+
+async function fetchJSON(url){
+  const r = await fetch(url);
+  if (!r.ok) { let t = ""; try { t = (await r.json()).reason || ""; } catch(e){} throw new Error("HTTP " + r.status + " " + t); }
+  return r.json();
+}
+
+async function loadLocation(key){
+  const L = LOCS[key];
+  const wxUrl = "https://api.open-meteo.com/v1/forecast?latitude=" + L.wx.lat + "&longitude=" + L.wx.lon +
+    "&hourly=temperature_2m,precipitation_probability,weather_code,cloud_cover,pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,is_day" +
+    "&daily=sunrise,sunset&timezone=Europe%2FIstanbul&forecast_days=7&wind_speed_unit=kmh";
+  const mBase = "https://marine-api.open-meteo.com/v1/marine?latitude=" + L.marine.lat + "&longitude=" + L.marine.lon +
+    "&timezone=Europe%2FIstanbul&forecast_days=7&cell_selection=sea&hourly=";
+  const wx = await fetchJSON(wxUrl);
+  let marine = null;
+  try { marine = await fetchJSON(mBase + "wave_height,wave_direction,wave_period,sea_surface_temperature"); }
+  catch(e){ try { marine = await fetchJSON(mBase + "wave_height,wave_direction,wave_period"); } catch(e2){ marine = null; } }
+  return { wx, marine, fetchedAt: Date.now() };
+}
+
+function buildHours(key, raw){
+  const L = LOCS[key];
+  const H = raw.wx.hourly;
+  const D = raw.wx.daily;
+  const M = raw.marine && raw.marine.hourly;
+  const mIndex = {};
+  if (M) M.time.forEach((t,i) => mIndex[t] = i);
+  const suns = {};
+  D.time.forEach((d,i) => {
+    const rise = parseLocal(D.sunrise[i]), set = parseLocal(D.sunset[i]);
+    suns[d] = { rise, set, noon: (rise + set)/2 };
+  });
+  const hours = [];
+  for (let i = 0; i < H.time.length; i++){
+    const tStr = H.time[i], t = parseLocal(tStr), day = tStr.slice(0,10);
+    const sun = suns[day];
+    if (!sun) continue;
+    const moon = moonInfo(t);
+    const mt = moonTimes(sun, moon);
+    const tfS = timeFactor(t, sun, mt, "shore"), tfB = timeFactor(t, sun, mt, "boat");
+    const p = H.pressure_msl[i], p3 = i >= 3 ? H.pressure_msl[i-3] : null;
+    const mi = mIndex[tStr];
+    const wave = (M && mi != null && M.wave_height[mi] != null) ? M.wave_height[mi]*100 : null;
+    const h = {
+      t, day, sun, moon, mt,
+      wind: H.wind_speed_10m[i], gust: H.wind_gusts_10m[i], dir: H.wind_direction_10m[i],
+      temp: H.temperature_2m[i], pop: H.precipitation_probability ? H.precipitation_probability[i] : null,
+      code: H.weather_code[i], isDay: H.is_day ? !!H.is_day[i] : !tfS.isNight,
+      pressure: p, dp: (p != null && p3 != null) ? p - p3 : null,
+      wave, period: (M && mi != null && M.wave_period) ? M.wave_period[mi] : null,
+      sst: (M && mi != null && M.sea_surface_temperature) ? M.sea_surface_temperature[mi] : null,
+      tf_shore: tfS.f, tf_boat: tfB.f, tag: tfS.tag, isNight: tfS.isNight, month: localMonth(t), sea: L.sea
+    };
+    const sc = scoreHour(h);
+    h.shore = sc.shore; h.boat = sc.boat; h.warn = sc.warn; h.waveUsed = sc.waveUsed;
+    hours.push(h);
+  }
+  return hours;
+}
+
+function manualHour(key){
+  const L = LOCS[key];
+  const now = Date.now();
+  const d = new Date(now);
+  const base = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  const st = sunTimesUTCmin(base + 12*3600000, L.wx.lat, L.wx.lon);
+  const sun = { rise: base + st.sunrise*60000, set: base + st.sunset*60000, noon: base + st.noon*60000 };
+  const moon = moonInfo(now), mt = moonTimes(sun, moon);
+  const tfS = timeFactor(now, sun, mt, "shore"), tfB = timeFactor(now, sun, mt, "boat");
+  const code = +document.getElementById("mSky").value;
+  const h = {
+    t: now - (now % 3600000), day: "manual", sun, moon, mt,
+    wind: +document.getElementById("mWind").value, gust: null, dir: +document.getElementById("mDir").value,
+    temp: null, pop: null, code, isDay: !tfS.isNight, pressure: null, dp: +document.getElementById("mPres").value,
+    wave: +document.getElementById("mWave").value, period: null, sst: +document.getElementById("mSst").value,
+    tf_shore: tfS.f, tf_boat: tfB.f, tag: tfS.tag, isNight: tfS.isNight, month: localMonth(now), sea: L.sea
+  };
+  const sc = scoreHour(h);
+  Object.assign(h, { shore: sc.shore, boat: sc.boat, warn: sc.warn, waveUsed: sc.waveUsed });
+  return h;
+}
+
+function pickBest(hours, mode, n){
+  const now = Date.now() - 3600000;
+  const cand = hours.filter(h => h.t >= now).slice().sort((a,b) => b[mode] - a[mode]);
+  const out = [];
+  for (const h of cand){
+    if (out.every(o => Math.abs(o.t - h.t) >= 5*3600000)) out.push(h);
+    if (out.length >= n) break;
+  }
+  return out;
+}
+
+function bestSpotFor(h, mode){
+  const L = LOCS[state.loc];
+  const base = { shore: h.shore, boat: h.boat };
+  const spots = L.spots.filter(s => s.type === mode).map(s => {
+    const r = spotScore(s, h, base);
+    const ctxBase = { sea: L.sea, month: h.month, tag: h.tag, isNight: h.isNight, wave: h.waveUsed, sst: h.sst, wind: h.wind, exposure: r.exposure };
+    const sps = s.species.map(k => ({ k, s: speciesScore(k, ctxBase) })).filter(x => x.s != null && SPECIES[x.k].method[mode] !== "—").sort((a,b) => b.s - a.s);
+    return { spot: s, ...r, species: sps };
+  }).sort((a,b) => (b.score + (b.species.length ? 3 : -20)) - (a.score + (a.species.length ? 3 : -20)));
+  return spots;
+}
+
+// ---------- render ----------
+function el(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function color(s){ return verdict(s)[1]; }
+
+function renderStatus(){
+  const src = state.source[state.loc];
+  let html = "";
+  if (state.manual) html = '<span><span class="dot off"></span>Canlı veri alınamadı — elle giriş modu</span>';
+  else if (src && src.kind === "live") html = '<span><span class="dot live"></span>Canlı veri · ' + fmtTime(src.at) + '</span>';
+  else if (src && src.kind === "cache") html = '<span><span class="dot cache"></span>Son kayıtlı veri · ' + fmtDay(src.at) + ' ' + fmtTime(src.at) + '</span>';
+  else html = '<span><span class="dot"></span>Yükleniyor…</span>';
+  const L = LOCS[state.loc];
+  html += '<a href="' + L.windy + '" target="_blank" rel="noopener">Windy\'de aç ↗</a>';
+  el("status").innerHTML = html;
+}
+
+function renderBest(){
+  const hours = state.data[state.loc];
+  if (!hours){ el("bestList").innerHTML = '<div class="small muted">Veri yok.</div>'; return; }
+  const best = pickBest(hours, state.bestMode, 4);
+  el("bestList").innerHTML = best.map(h => {
+    const sp = bestSpotFor(h, state.bestMode)[0];
+    const fish = sp && sp.species[0] ? SPECIES[sp.species[0].k].ad : "—";
+    const tagTxt = h.tag === "dawn" ? "şafak" : h.tag === "dusk" ? "akşamüstü" : h.tag === "major" ? "ay majör periyodu" : h.tag === "minor" ? "ay minör periyodu" : (h.isNight ? "gece" : "gündüz");
+    return '<div class="best" data-t="' + h.t + '">' +
+      '<div class="sc" style="background:' + color(h[state.bestMode]) + '">' + h[state.bestMode] + '</div>' +
+      '<div class="tx"><b>' + fmtDay(h.t) + ' · ' + fmtTime(h.t - 3600000) + '–' + fmtTime(h.t + 3600000) + '</b><br>' +
+      esc(sp ? sp.spot.name : "") + ' · <span style="color:var(--accent2)">' + esc(fish) + '</span><br>' +
+      '<span class="m">' + Math.round(h.wind) + ' km/sa ' + windName(h.dir) + ' · dalga ' + Math.round(h.waveUsed) + ' cm · ' + tagTxt + '</span></div></div>';
+  }).join("") || '<div class="small muted">Önümüzdeki günlerde uygun pencere yok.</div>';
+  el("bestList").querySelectorAll(".best").forEach(b => b.addEventListener("click", () => {
+    selectHour(+b.dataset.t); el("detailSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x.dataset.mode === state.bestMode));
+    state.detailMode = state.bestMode; renderDetail(); el("detailCard").scrollIntoView({behavior:"smooth", block:"start"});
+  }));
+}
+
+function renderStrips(){
+  const hours = state.data[state.loc];
+  if (!hours){ el("days").innerHTML = ""; return; }
+  const byDay = {};
+  hours.forEach(h => (byDay[h.day] = byDay[h.day] || []).push(h));
+  const nowH = Date.now() - (Date.now() % 3600000);
+  let html = "";
+  Object.keys(byDay).forEach(day => {
+    const hs = byDay[day];
+    const max = hs.reduce((a,b) => b[state.stripMode] > a[state.stripMode] ? b : a);
+    html += '<div class="day"><div class="dh"><b>' + fmtDay(hs[0].t) + '</b><span>en iyi ' + fmtTime(max.t) + ' (' + max[state.stripMode] + ')</span></div><div class="strip">';
+    for (let i = 0; i < 24; i++){
+      const h = hs.find(x => localHour(x.t) === i);
+      if (!h){ html += '<div class="c" style="background:#0a1a28"></div>'; continue; }
+      const cls = "c" + (state.sel === h.t ? " sel" : "") + (h.t === nowH ? " now" : "");
+      html += '<div class="' + cls + '" data-t="' + h.t + '" style="background:' + color(h[state.stripMode]) + ';opacity:' + (h.t < nowH ? 0.35 : 1) + '"></div>';
+    }
+    html += '</div><div class="hours">' + Array.from({length:24},(_,i) => '<span>' + (i % 3 === 0 ? i : "") + '</span>').join("") + '</div></div>';
+  });
+  el("days").innerHTML = html;
+  el("days").querySelectorAll(".c[data-t]").forEach(c => c.addEventListener("click", () => {
+    selectHour(+c.dataset.t); renderStrips(); renderDetail(); el("detailCard").scrollIntoView({behavior:"smooth", block:"start"});
+  }));
+}
+
+function selectHour(t){ state.sel = t; }
+
+function currentHour(){
+  if (state.manual) return manualHour(state.loc);
+  const hours = state.data[state.loc];
+  if (!hours || !hours.length) return null;
+  if (state.sel){ const h = hours.find(x => x.t === state.sel); if (h) return h; }
+  const nowH = Date.now() - (Date.now() % 3600000);
+  return hours.find(x => x.t === nowH) || hours[0];
+}
+
+function renderDetail(){
+  const h = currentHour();
+  if (!h){ return; }
+  el("dTime").textContent = (state.manual ? "Şu an · " : "") + fmtTime(h.t);
+  el("dDate").textContent = fmtDay(h.t) + " · Gün doğumu " + fmtTime(h.sun.rise) + " · batımı " + fmtTime(h.sun.set);
+  el("dMoon").innerHTML = h.moon.emoji + " " + esc(h.moon.name) + "<br>%" + Math.round(h.moon.illum) + " aydınlık";
+  const [vs, cs] = verdict(h.shore), [vb, cb] = verdict(h.boat);
+  el("sShore").textContent = h.shore; el("sShore").style.color = cs; el("vShore").textContent = vs; el("vShore").style.color = cs;
+  el("sBoat").textContent = h.boat; el("sBoat").style.color = cb; el("vBoat").textContent = vb; el("vBoat").style.color = cb;
+  const dpTxt = h.dp == null ? "—" : (h.dp <= -3 ? "Hızla düşüyor" : h.dp <= -1 ? "Düşüyor" : h.dp < 1 ? "Sabit" : h.dp < 3 ? "Yükseliyor" : "Hızla yükseliyor");
+  const waveTxt = h.wave == null ? "~" + Math.round(h.waveUsed) + " cm (tahmini)" : Math.round(h.wave) + " cm" + (h.period ? " · " + Math.round(h.period) + " sn" : "");
+  const cells = [
+    ["Rüzgâr", Math.round(h.wind) + " km/sa" + (h.gust ? " (hamle " + Math.round(h.gust) + ")" : "")],
+    ["Yön", '<span class="arrow" style="transform:rotate(' + ((h.dir + 180) % 360) + 'deg)">↑</span> ' + windName(h.dir) + " (" + dirName(h.dir) + ")"],
+    ["Dalga", waveTxt],
+    ["Basınç", (h.pressure ? Math.round(h.pressure) + " hPa · " : "") + dpTxt],
+    ["Deniz suyu", h.sst != null ? h.sst.toFixed(1) + " °C" : "—"],
+    ["Hava", ((h.temp != null ? Math.round(h.temp) + " °C · " : "") + (h.pop != null ? "yağış %" + h.pop : "")) || "—"]
+  ];
+  el("condGrid").innerHTML = cells.map(c => "<div>" + c[0] + "<b>" + c[1] + "</b></div>").join("");
+  el("warnBox").innerHTML = h.warn.length ? '<div class="warn">⚠️ ' + h.warn.map(esc).join("<br>⚠️ ") + "</div>" : "";
+
+  const ranked = bestSpotFor(h, state.detailMode).slice(0, 3);
+  el("spotList").innerHTML = ranked.map((r, idx) => {
+    const sp = r.spot;
+    const [vt, vc] = verdict(r.score);
+    const fishList = r.species.slice(0, 2);
+    let fishHtml = "";
+    if (!fishList.length) fishHtml = '<div class="sp small muted">Bu merada şu ay için öne çıkan hedef tür yok.</div>';
+    fishList.forEach((f, j) => {
+      const S = SPECIES[f.k];
+      fishHtml += '<div class="sp"><div class="sn">' + (j === 0 ? "🎯 " : "＋ ") + esc(S.ad) + ' <small>(' + (j === 0 ? "ana hedef" : "alternatif") + ')</small></div>' +
+        '<div class="kv">' +
+        '<div class="k">Yöntem</div><div>' + esc(S.method[state.detailMode]) + '</div>' +
+        '<div class="k">Yem</div><div>' + S.bait.map(esc).join("<br>") + '</div>' +
+        (j === 0 ? '<div class="k">Takım</div><div>' + esc(S.tackle) + '</div>' : "") +
+        '<div class="k">Yasal</div><div>Asgari boy ' + esc(S.boy) + ' · ' + esc(S.limit) + '</div>' +
+        (j === 0 ? '<div class="k">İpucu</div><div>' + esc(S.tip) + '</div>' : "") +
+        '</div></div>';
+    });
+    const maps = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(sp.name.replace(/\(.*?\)/g, "") + " " + (state.loc === "bozcaada" ? "Bozcaada" : "Biga Çanakkale"));
+    return '<div class="spot"><div class="top"><div><div class="name">' + (idx === 0 ? "🥇 " : idx === 1 ? "🥈 " : "🥉 ") + esc(sp.name) + '</div>' +
+      '<div class="why">' + r.why.map(esc).join(" · ") + (r.why.length ? "<br>" : "") + esc(sp.note) + '</div></div>' +
+      '<span class="pill" style="background:' + vc + '33;color:' + vc + '">' + r.score + ' · ' + vt + '</span></div>' +
+      fishHtml +
+      '<div style="margin-top:8px"><a class="maplink" href="' + maps + '" target="_blank" rel="noopener">📍 Haritada aç</a></div></div>';
+  }).join("");
+}
+
+function renderGuides(){
+  const L = LOCS[state.loc];
+  const keys = Array.from(new Set(L.spots.flatMap(s => s.species)));
+  const mName = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+  el("speciesGuide").innerHTML = keys.map(k => {
+    const S = SPECIES[k];
+    const ms = S.months[L.sea] || [];
+    return '<div class="sp"><div class="sn">' + esc(S.ad) + ' <small>· ' + (ms.length === 12 ? "yıl boyu" : ms.map(m => mName[m-1]).join(", ")) + '</small></div>' +
+      '<div class="kv"><div class="k">Kıyıdan</div><div>' + esc(S.method.shore) + '</div>' +
+      '<div class="k">Tekneden</div><div>' + esc(S.method.boat) + '</div>' +
+      '<div class="k">Yem</div><div>' + S.bait.map(esc).join("<br>") + '</div>' +
+      '<div class="k">Takım</div><div>' + esc(S.tackle) + '</div>' +
+      '<div class="k">İpucu</div><div>' + esc(S.tip) + '</div></div></div>';
+  }).join("");
+  el("legalTable").innerHTML = '<table class="t"><tr><th>Tür</th><th>Asgari boy</th><th>Limit / yasak</th></tr>' +
+    LEGAL.map(r => "<tr><td>" + r.map(esc).join("</td><td>") + "</td></tr>").join("") + '</table>' +
+    '<div class="small muted" style="margin-top:8px">6/2 Numaralı Amatör Avcılık Tebliği (2024–2028) ve 2026 değişikliğine dayanan ikincil kaynaklardan derlendi. Kaynaklar arasında farklı değer veren de var; şüphede Tarım ve Orman Bakanlığı / il müdürlüğünden teyit et. Boyu küçük balığı zarar vermeden suya bırak.</div>';
+  el("manualLinks").innerHTML = '<a href="' + L.windy + '" target="_blank" rel="noopener">Windy — ' + esc(L.name) + '</a> · <a href="https://www.mgm.gov.tr/denizmeteoroloji/" target="_blank" rel="noopener">MGM Deniz</a>';
+}
+
+function renderAll(){
+  renderStatus();
+  el("bestCard").classList.toggle("hidden", state.manual);
+  el("manualCard").classList.toggle("hidden", !state.manual);
+  renderBest(); renderStrips(); renderDetail(); renderGuides();
+  el("days").closest(".card").classList.toggle("hidden", state.manual);
+}
+
+async function refresh(key, force){
+  const cacheKey = "bt_data_" + key;
+  try {
+    const raw = await loadLocation(key);
+    lsSet(cacheKey, raw);
+    state.data[key] = buildHours(key, raw);
+    state.source[key] = { kind:"live", at: raw.fetchedAt };
+    state.manual = false;
+    el("offlineInfo").classList.add("hidden");
+  } catch (e){
+    const cached = lsGet(cacheKey);
+    if (cached && cached.wx && Date.now() - cached.fetchedAt < 7*86400000){
+      state.data[key] = buildHours(key, cached);
+      state.source[key] = { kind:"cache", at: cached.fetchedAt };
+      state.manual = false;
+      el("offlineInfo").textContent = "İnternete ulaşılamadı; son kaydedilen tahmin gösteriliyor.";
+      el("offlineInfo").classList.remove("hidden");
+    } else {
+      state.data[key] = null;
+      state.manual = true;
+      el("offlineInfo").innerHTML = "Bu görünüm canlı hava verisine bağlanamıyor (ör. Claude içindeki önizleme). Telefonda canlı veri için uygulamanın web adresini kullan. Şimdilik koşulları aşağıya elle girebilirsin.";
+      el("offlineInfo").classList.remove("hidden");
+    }
+  }
+  if (key === state.loc) renderAll();
+}
+
+function init(){
+  const saved = lsGet("bt_loc");
+  if (saved && LOCS[saved]) state.loc = saved;
+  document.querySelectorAll(".tab").forEach(t => {
+    t.classList.toggle("active", t.dataset.loc === state.loc);
+    t.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+      t.classList.add("active"); state.loc = t.dataset.loc; state.sel = null; lsSet("bt_loc", state.loc);
+      if (state.data[state.loc] === undefined) { renderStatus(); refresh(state.loc); } else renderAll();
+    });
+  });
+  const segs = [["bestSeg","bestMode",renderBest],["stripSeg","stripMode",renderStrips],["detailSeg","detailMode",renderDetail]];
+  segs.forEach(([id, key, fn]) => {
+    el(id).querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+      el(id).querySelectorAll("button").forEach(x => x.classList.remove("on")); b.classList.add("on"); state[key] = b.dataset.mode; fn();
+    }));
+  });
+  el("refreshBtn").addEventListener("click", () => { state.source[state.loc] = null; renderStatus(); refresh(state.loc, true); });
+  [["mWind","mWindV"," km/sa"],["mWave","mWaveV"," cm"],["mSst","mSstV"," °C"]].forEach(([i,v,u]) => {
+    el(i).addEventListener("input", () => { el(v).textContent = el(i).value + u; if (state.manual) renderDetail(); });
+  });
+  ["mDir","mPres","mSky"].forEach(i => el(i).addEventListener("change", () => { if (state.manual) renderDetail(); }));
+  renderStatus(); renderGuides();
+  refresh(state.loc);
+  if ("serviceWorker" in navigator && location.protocol === "https:" && !/claude|claudeusercontent|anthropic/.test(location.hostname)){
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+}
+init();
+</script>
+</body>
+</html>
